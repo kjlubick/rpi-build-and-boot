@@ -14,27 +14,7 @@
     - command: mkdir -p /opt/raspberrypi creates=/opt/raspberrypi
 
     - apt: name=nfs-kernel-server
-    - lineinfile: dest=/etc/exports line="/opt/raspberrypi/root {{net}}/24(rw,sync,no_root_squash,no_subtree_check)"
-
-    - lineinfile: dest=/etc/cron.d/opt_raspberrypi_root line="* * * * * root /bin/mount /opt/raspberrypi/root" create=yes
-
-    - service: name=nfs-kernel-server state=restarted
-
-    - apt: name=build-essential
-    - apt: name=pkg-config
-    - apt: name=git
-    - apt: name=python-pip
-    - apt: name=python-dev
-    - apt: name=unzip
-    - apt: name=gawk
-    - apt: name=libudev-dev
-
-    - apt: name=sshpass
-
-    - apt: name=tinyproxy
-    - lineinfile: dest="/etc/tinyproxy.conf" line="Allow {{net}}/8"
-    - service: name=tinyproxy state=restarted
-
+    - lineinfile: dest=/etc/exports line="/opt/raspberrypi/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check)"
 
   handlers:
 
