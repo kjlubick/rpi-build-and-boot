@@ -7,9 +7,11 @@
     img_dir: /opt/rpi_img/
     net: 192.168.1.0
     nfs_ip: 192.168.1.114
-    image: 2015-09-24-raspbian-jessie.img
+    image: 2016-03-18-raspbian-jessie-lite.img
+    # 8192 * 512  
     offset_boot: 4194304
-    offset_root: 62914560
+    # 131072 * 512
+    offset_root: 67108864
   tasks:
     - file: path=/opt/raspberrypi/boot state=directory
     - file: path=/opt/raspberrypi/root state=directory
@@ -17,11 +19,24 @@
     - mount: src="{{img_dir}}{{image}}" name="/opt/raspberrypi/boot" fstype="auto" opts="loop,offset={{offset_boot}},noauto" state="mounted"
     - mount: src="{{img_dir}}{{image}}" name="/opt/raspberrypi/root" fstype="auto" opts="loop,offset={{offset_root}},noauto" state="mounted"
 
-    # the pi is unbootable unless it is told not to mount the root filesystem from the card!
+    # Set up mounts
     - lineinfile: dest=/opt/raspberrypi/root/etc/fstab regexp=".*mmcblk0p2.*" state=absent
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p2  /var   ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p3  /tmp   ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p4  /b     ext4    defaults          0       2" state=present
 
-    - file: /opt/raspberrypi/boot/cmdline.txt state=absent
-    - lineinfile: dest=/opt/raspberrypi/boot/cmdline.txt create=yes line="console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:/opt/raspberrypi/root ip=192.168.1.201:{{nfs_ip}}:192.168.1.1:255.255.255.0:skia-rpi-NNN:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
+    - file: path=/opt/raspberrypi/root/b state=directory
+    # Make the hostname be set from the cmdline, not etc/hostname
+    - file: path=/opt/raspberrypi/root/etc/hostname state=absent
+    # Autologin to our user
+    - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service regexp="^ExecStart.*" state=absent
+    - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service line="ExecStart=-/sbin/agetty --autologin pi --noclear %I $TERM" state=present insertafter="\[Service\]"
+
+
+
+    # Set up /boot partition to nfs boot
+    - file: path=/opt/raspberrypi/boot/cmdline.txt state=absent
+    - lineinfile: dest=/opt/raspberrypi/boot/cmdline.txt create=yes line="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:/opt/raspberrypi/root ip=192.168.1.201:{{nfs_ip}}:192.168.1.1:255.255.255.0:skia-rpi-NNN:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
     
     # start nfs
     - service: name=nfs-kernel-server state=restarted
