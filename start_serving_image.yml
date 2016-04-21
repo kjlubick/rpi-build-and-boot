@@ -21,9 +21,10 @@
 
     # Set up mounts
     - lineinfile: dest=/opt/raspberrypi/root/etc/fstab regexp=".*mmcblk0p2.*" state=absent
-    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p2  /var   ext4    defaults          0       2" state=present
-    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p3  /tmp   ext4    defaults          0       2" state=present
-    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p4  /b     ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p3  /b     ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p5  /var   ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p6  /tmp   ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p7  /home/chrome-bot   ext4    defaults          0       2" state=present
 
     - file: path=/opt/raspberrypi/root/b state=directory
     # Make the hostname be set from the cmdline, not etc/hostname
