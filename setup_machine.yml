@@ -1,6 +1,6 @@
 ---
 - hosts: all
-  remote_user: vagrant
+  remote_user: chrome-bot
   sudo: yes
   vars:
     img_dir: /opt/rpi_img/

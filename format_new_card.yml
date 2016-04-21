@@ -1,0 +1,80 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  remote_user: chrome-bot
+  sudo: yes
+  vars:
+    nfs_ip: 192.168.1.114
+  vars_prompt:
+    - name: "drive"
+      prompt: "What drive would you like to format"
+      default: "/dev/sdb"
+    - name: "partitions"
+      prompt: "Where is the partition table file (generated with sfdisk -d [drive])"
+      default: "./32Gpartitions"
+    - name: "static_ip"
+      prompt: "What is the static IP address of this bot?"
+    - name: "hostname"
+      prompt: "What is the hostname of this bot?"
+
+  tasks:
+    - name: unmounting drive and partitions
+      mount: name="{{drive}}{{ item }}" src="dontcare" fstype="auto" state="unmounted"
+      with_items:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+
+    - name: Partitioning drive
+      shell: sudo sfdisk {{drive}} < {{partitions}}
+
+    # TODO(kjlubick): perhaps use the filesystem: module
+    - name: formatting boot partition
+      command: sudo mkfs.fat {{drive}}1 -n BOOT
+    - name: formatting "b" partition
+      command: sudo mkfs.ext4 {{drive}}3 -L B
+    - name: formatting var partition
+      command: sudo mkfs.ext4 {{drive}}5 -L VAR
+    - name: formatting tmp partition
+      command: sudo mkfs.ext4 {{drive}}6 -L TMP
+    - name: formatting home partition
+      command: sudo mkfs.ext4 {{drive}}7 -L HOME
+
+    - name: unmounting drive and partitions
+      mount: name="{{drive}}{{ item }}" src="dontcare" fstype="auto" state="unmounted"
+      with_items:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+
+    - name: remounting /boot for writing
+      mount: src="{{drive}}1" name="/media/boot" fstype="auto" state="mounted"
+    - name: Copying /boot files
+      shell: sudo cp -rp /opt/raspberrypi/boot/* /media/boot/
+
+    - name: deleting /boot/cmdline.txt
+      file: path=/opt/raspberrypi/boot/cmdline.txt state=absent
+    - name: writing /boot/cmdline.txt with hostname {{hostname}} and ip {{static_ip}}
+      lineinfile: dest=/opt/raspberrypi/boot/cmdline.txt create=yes line="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:/opt/raspberrypi/root ip={{static_ip}}:{{nfs_ip}}:192.168.1.1:255.255.255.0:{{hostname}}:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
+
+    - name: unmounting /boot
+      mount: src="{{drive}}1" name="/media/boot" fstype="auto" state="unmounted"
+
+    - name: remounting /home for writing
+      mount: src="{{drive}}7" name="/media/home" fstype="auto" state="mounted"
+    - name: Copying /home files
+      shell: sudo cp -rp /opt/raspberrypi/root/home/chrome-bot/* /media/home/
+    - name: unmounting /boot
+      mount: src="{{drive}}7" name="/media/home" fstype="auto" state="unmounted"
+
+
+  handlers:
+
