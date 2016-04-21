@@ -30,7 +30,7 @@
     - file: path=/opt/raspberrypi/root/etc/hostname state=absent
     # Autologin to our user
     - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service regexp="^ExecStart.*" state=absent
-    - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service line="ExecStart=-/sbin/agetty --autologin pi --noclear %I $TERM" state=present insertafter="\[Service\]"
+    - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service line="ExecStart=-/sbin/agetty --autologin chrome-bot --noclear %I $TERM" state=present insertafter="\[Service\]"
 
 
 

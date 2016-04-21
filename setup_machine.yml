@@ -11,6 +11,11 @@
     offset_root: 67108864
   tasks:
     - apt: upgrade=dist update_cache=yes
+    - apt: name=binfmt-support
+    - apt: name=qemu
+    - apt: name=qemu-user-static
+    - apt: name=unzip
+
     - command: mkdir -p /opt/raspberrypi creates=/opt/raspberrypi
 
     - apt: name=nfs-kernel-server
