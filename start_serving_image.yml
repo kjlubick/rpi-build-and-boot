@@ -8,7 +8,7 @@
     net: 192.168.1.0
     nfs_ip: 192.168.1.114
     image: 2016-03-18-raspbian-jessie-lite.img
-    # 8192 * 512  
+    # 8192 * 512
     offset_boot: 4194304
     # 131072 * 512
     offset_root: 67108864
@@ -31,13 +31,17 @@
     # Autologin to our user
     - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service regexp="^ExecStart.*" state=absent
     - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service line="ExecStart=-/sbin/agetty --autologin pi --noclear %I $TERM" state=present insertafter="\[Service\]"
-
+    # Some niceties "
+    - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias l='ls -CF'" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias la='ls -A'" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias ll='ls -alF'" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias ls='ls --color=auto'" state=present
 
 
     # Set up /boot partition to nfs boot
     - file: path=/opt/raspberrypi/boot/cmdline.txt state=absent
     - lineinfile: dest=/opt/raspberrypi/boot/cmdline.txt create=yes line="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:/opt/raspberrypi/root ip=192.168.1.201:{{nfs_ip}}:192.168.1.1:255.255.255.0:skia-rpi-NNN:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
-    
+
     # start nfs
     - service: name=nfs-kernel-server state=restarted
 
